@@ -1,0 +1,67 @@
+#Create a Virtual Environment for Windows:
+py -3.10 -m venv myenvir
+
+
+#Activate the Virtual Environment
+myenvir\Scripts\activate
+
+#Install dependencies using
+pip install -r requirements.txt
+
+#Run the file
+python app.py
+
+
+#Deactivate the Virtual Environment
+deactivate
+
+---------------------------
+
+
+#Check if installed 
+python --version
+
+# Output
+Python 3.10.11
+
+If Yes run the scripts below 
+
+
+#Create a Virtual Environment for Windows:
+python -m venv venv
+
+
+#Activate the Virtual Environment
+venv\Scripts\activate
+
+#Install dependencies using
+pip install -r requirements.txt
+
+#Run the file
+python app.py
+
+#Deactivate the Virtual Environment
+deactivate
+
+
+# Install required Python packages to  integrate the chatbot
+pip install flask flask-socketio requests python-dotenv
+
+
+
+--------------------------------
+
+
+The error is likely caused by Windows' default path length limitation, 
+which prevents pip from installing TensorFlow due to the long file path. 
+You can fix this by enabling long path support and reinstalling TensorFlow.
+
+Step 1: Enable Long Path Support
+Press Win + R, type regedit, and press Enter to open the Registry Editor.
+
+Navigate to: Copy
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem
+
+Find LongPathsEnabled, double-click it, and set its Value data to 1.
+
+Click OK, close the Registry Editor, and restart your computer.

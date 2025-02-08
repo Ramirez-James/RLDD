@@ -1,0 +1,36 @@
+<!-- templates/home.html -->
+{% extends "base.html" %}
+{% block content %}
+
+
+<div class="home-page ">
+    <img src="{{ url_for('static', filename='images/Home_page.webp') }}" alt="home page image"  height="" width=" 100%" loading="lazy">
+</div>
+
+<div class="content-card">
+    <h3>Welcome to the Rice Leaf Diseases Detection System🌾🔍</h3>
+    <p>Our advanced system uses image processing to help you identify and manage rice leaf diseases effectively.</p>
+</div>
+
+<div class="content-card">
+    <h3>Scope and Goals</h3>
+    <p>This system is designed to detect various rice leaf diseases, including:</p>
+    <ul>
+        <li>Bacterial Leaf Blight</li>
+        <li>Tungro</li>
+        <li>Sheath Blight</li>
+        <li>Rice Blast</li>
+        <li>Brown Spot</li>
+    </ul>
+</div>
+
+<div class="content-card">
+    <h3>How It Works</h3>
+    <ol>
+        <li><strong>Upload Image:</strong> Navigate to the Disease Detection page</li>
+        <li><strong>Analysis:</strong> Our AI processes your image</li>
+        <li><strong>Results:</strong> Get detailed disease information and treatment recommendations</li>
+    </ol>
+</div>
+
+{% endblock %}

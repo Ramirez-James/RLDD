@@ -1,0 +1,4 @@
+2025-01-23 23:46:22,674 - INFO - Starting application setup...
+2025-01-23 23:46:22,674 - ERROR - Failed to create Model Directory: [WinError 5] Access is denied: 'C:\\Users\\User'
+2025-01-23 23:46:22,674 - ERROR - Application failed to start: [WinError 5] Access is denied: 'C:\\Users\\User'
+2025-01-23 23:46:22,674 - INFO - Application shutdown complete

@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="content-card">
+    <h3 class="text-center mb-4">Rice Leaf Disease Detection 🔍</h3>
+    <P style="text-align: center;"> <i style="font-weight:bold;">Note :</i> Upload a clear image of a rice leaf without complex background to detect potential diseases.</p>
+    
+    <!-- Upload Form -->
+    <form id="upload-form" enctype="multipart/form-data" class="mb-4">
+        <div class="upload-container">
+            <div class="upload-area" id="drop-zone">
+                <input type="file" class="file-input" id="file" name="file" accept=".jpg,.jpeg,.png" hidden>
+                <div class="upload-content">
+                    <i class="upload-icon">📷</i>
+                    <p>Drag and drop an image here or click to select</p>
+                    <p class="upload-hint">Supported formats: JPG, JPEG, PNG</p>
+                </div>
+            </div>
+            <div id="preview-container" class="mt-3 d-none">
+                <!-- <div class="preview-wrapper"> -->
+                    <img id="image-preview" class="preview-image" alt="Preview">
+                    <button type="button" class="btn btn-sm btn-danger remove-preview">
+                        <i class="fas fa-times"></i>
+                    </button>
+                <!-- </div> -->
+            </div>
+        </div>
+        <button type="submit" class="btn btn-success w-100 mt-3" id="detect-btn" disabled>
+            Detect Disease
+        </button>
+    </form>
+
+    <!-- Results Section -->
+    <div id="result" class="mt-4"></div>
+</div>
+
+<!-- js functions -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('upload-form');
+    const fileInput = document.getElementById('file');
+    const dropZone = document.getElementById('drop-zone');
+    const previewContainer = document.getElementById('preview-container');
+    const imagePreview = document.getElementById('image-preview');
+    const detectButton = document.getElementById('detect-btn');
+    const resultDiv = document.getElementById('result');
+    const removePreviewButton = document.querySelector('.remove-preview');
+
+    // Handle drag and drop
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+        dropZone.classList.add('dragover');
+    }
+
+    function unhighlight(e) {
+        dropZone.classList.remove('dragover');
+    }
+
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+
+        if (files.length > 0) {
+            fileInput.files = files;
+            updatePreview(files[0]);
+        }
+    }
+
+    // Handle click upload
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            // Clear the result when image is change
+            resultDiv.innerHTML = '';
+            updatePreview(fileInput.files[0]);
+        }
+    });
+
+    // Preview image
+    function updatePreview(file) {
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                imagePreview.src = e.target.result;
+                previewContainer.classList.remove('d-none');
+                detectButton.disabled = false;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // Remove preview
+    removePreviewButton.addEventListener('click', () => {
+        fileInput.value = '';
+        previewContainer.classList.add('d-none');
+        detectButton.disabled = true;
+        // Clear the result when image is removed
+        resultDiv.innerHTML = '';
+    });
+
+    // Handle form submission
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!fileInput.files.length) {
+            showError('Please select an image file');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        try {
+            showLoading();
+            
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                let errorMessage = 'An error occurred while processing the image. Please try again.';
+                if (errorData.error) {
+                    errorMessage = errorData.error;
+                }
+                throw new Error(errorMessage);
+            }
+
+            const data = await response.json();
+            showResult(data);
+
+        } catch (error) {
+            console.error('Error:', error);
+            showError(error.message);
+        }
+    });
+
+    function showLoading() {
+        resultDiv.innerHTML = `
+            <div class="alert alert-info">
+                <div class="d-flex align-items-center justify-content-center">
+                    <div class="spinner-border spinner-border-sm me-2" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    Analyzing image...
+                </div>
+            </div>`;
+    }
+
+    function showError(message) {
+        resultDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    ${message}
+                </div>
+            </div>`;
+    }
+
+    
+    function showResult(data) {
+        let resultHTML = `<div class="solution-card">`;
+
+        // Detection Result
+        resultHTML += `<div class="detection-result">`;
+        if (data.prediction === 'Healthy') {
+            resultHTML += `<span class=" ">No disease detected, Your rice plants are in good condition!</span>`;
+        } else if (data.prediction === 'Unknown Image or Diseases') {
+            resultHTML += `<span class="">
+                                <b>Detection Result:</b> <br> 
+                                The uploaded image has been classified as <b>"${data.prediction}."</b> <br> <br> 
+                                This means the system could not confidently match the image to any known rice leaf diseases within its scope. <br> <br>
+                                <b>Suggestions:</b> <br>  
+                                <ul>
+                                    <li>Ensure the image is clear, well-lit, and in focus.</li>
+                                    <li>Capture a closer shot of the affected leaf for better accuracy.</li>
+                                    <li>Only upload images of rice leaves affected by disease.</li>
+                                </ul>  
+                                <b>Please try uploading the image again to see another result.</b>
+                            </span>`;
+        } else if (data.prediction) {
+            resultHTML += `<span class="">
+                                <b>Detection Result:</b> <br>
+                                The uploaded image has been classified as <b>"${data.prediction}."</b>
+                                </span>`;
+        } else {
+            resultHTML += `<span class="text-danger">Unable to determine the disease. Please try uploading the image again.</span>`;
+        }
+        resultHTML += `</div>`;
+
+        resultHTML += `</div>`;
+
+        // Check if we have any solution images
+        if (data.solution_image_bic || data.solution_image_tag || data.solution_image_eng) {
+            resultHTML += `
+                <div class="solution-section mt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class=" ">Recommended Solutions:</h4>
+                        <select class="form-select language-select" onchange="changeLanguage(this.value)">
+                            ${data.solution_image_bic ? '<option value="bicol">Bicol</option>' : ''}
+                            ${data.solution_image_tag ? '<option value="tagalog">Tagalog</option>' : ''}
+                            ${data.solution_image_eng ? '<option value="english">English</option>' : ''}
+                        </select>
+                    </div>
+
+                    <!-- Bicol Solution -->
+                    ${data.solution_image_bic ? `
+                        <div class="solution-image bicol-solution" style="display: none;">
+                            <img src="data:image/jpeg;base64,${data.solution_image_bic}"
+                                 class="reference-image"
+                                 alt="Bicol solution for ${data.prediction}">
+                        </div>
+                    ` : ''}
+
+                    <!-- Tagalog Solution -->
+                    ${data.solution_image_tag ? `
+                        <div class="solution-image tagalog-solution" style="display: none;">
+                            <img src="data:image/jpeg;base64,${data.solution_image_tag}"
+                                 class="reference-image"
+                                 alt="Tagalog solution for ${data.prediction}">
+                        </div>
+                    ` : ''}
+
+                    <!-- English Solution -->
+                    ${data.solution_image_eng ? `
+                        <div class="solution-image english-solution" style="display: none;">
+                            <img src="data:image/jpeg;base64,${data.solution_image_eng}"
+                                 class="reference-image"
+                                 alt="English solution for ${data.prediction}">
+                        </div>
+                    ` : ''}
+                </div>`;
+        }
+
+        resultDiv.innerHTML = resultHTML;
+
+        // Show the first available language by default
+        const select = document.querySelector('.language-select');
+        if (select) {
+            changeLanguage(select.value);
+        }
+    }
+
+});
+
+
+
+// Select the language solution
+function changeLanguage(language) {
+    // Hide all solutions
+    document.querySelectorAll('.solution-image').forEach(solution => {
+        solution.style.display = 'none';
+    });
+
+    // Show selected language solution
+    const selectedSolution = document.querySelector(`.${language}-solution`);
+    if (selectedSolution) {
+        selectedSolution.style.display = 'block';
+    }
+}
+
+</script>
+{% endblock %}
+
+
+
+
+
