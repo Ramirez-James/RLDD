@@ -1,6 +1,7 @@
-tensorflow==2.18.0
-numpy==1.24.3  # Updated to a version compatible with Python 3.11
-flask==2.2.3   # Keeping as is since it was working
-werkzeug==2.2.3  # Keeping as is since it was working
-pillow==9.2.0  # Keeping as is since it was working
+flask==2.2.3
+werkzeug==2.2.3
+tensorflow==2.10.0
+pillow==9.2.0
+numpy==1.21.5
+scipy==1.7.3
 gunicorn
